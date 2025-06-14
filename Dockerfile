@@ -9,7 +9,7 @@ COPY . .
 # Устанавливаем зависимости из корневого package.json
 RUN npm install
 
-# Собираем клиент — в client/dist
+# Собираем клиент (билд окажется в ./dist)
 RUN npm run build
 
 # === Stage 2: Production server ===
@@ -17,17 +17,17 @@ FROM node:18
 
 WORKDIR /app
 
-# Копируем всё, кроме node_modules и dist (оптимизация)
+# Копируем всё, кроме node_modules и dist
 COPY --chown=node:node . .
 
-# Устанавливаем только необходимые зависимости
+# Устанавливаем только прод-зависимости
 RUN npm install --omit=dev
 
-# Копируем собранный фронтенд в public/ (или куда указывает сервер)
-COPY --from=builder /app/client/dist ./server/public
+# Копируем собранный фронтенд из корня в public
+COPY --from=builder /app/dist ./server/public
 
 # Переходим в директорию сервера
 WORKDIR /app/server
 
-# Запуск сервера
+# Запуск
 CMD ["npm", "start"]
