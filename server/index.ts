@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -47,7 +49,7 @@ import { createServer } from "http";
     res.status(status).json({ message });
   });
 
-  const port = 5000;
+  const port = process.env.PORT || 5000;
   const server = createServer(app); // ✅ только здесь создаём сервер
 
   if (app.get("env") === "development") {
