@@ -1,33 +1,32 @@
-# === Stage 1: Build client ===
+# === Stage 1: Build app ===
 FROM node:18 AS builder
 
 WORKDIR /app
 
-# Копируем весь проект
-COPY . .
+# Копируем package.json и package-lock.json
+COPY package*.json ./
 
-# Устанавливаем зависимости из корневого package.json
+# Устанавливаем зависимости
 RUN npm install
 
-# Собираем клиент (билд окажется в ./dist)
+# Копируем остальной проект
+COPY . .
+
+# Билдим клиент и сервер
 RUN npm run build
 
-# === Stage 2: Production server ===
-FROM node:18
+# === Stage 2: Production image ===
+FROM node:18 AS runner
 
 WORKDIR /app
 
-# Копируем всё, кроме node_modules и dist
-COPY --chown=node:node . .
+# Копируем только то, что нужно
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/client/dist ./public
 
-# Устанавливаем только прод-зависимости
+# Устанавливаем только прод зависимости
 RUN npm install --omit=dev
 
-# Копируем собранный фронтенд из корня в public
-COPY --from=builder /app/dist ./server/public
-
-# Переходим в директорию сервера
-WORKDIR /app/server
-
-# Запуск
+# Стартуем сервер
 CMD ["npm", "start"]
