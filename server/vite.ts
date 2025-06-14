@@ -9,7 +9,9 @@ import { nanoid } from "nanoid";
 const viteLogger = createLogger();
 import { fileURLToPath } from "url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = import.meta.url
+  ? path.dirname(fileURLToPath(import.meta.url))
+  : process.cwd();
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -77,23 +79,27 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(__dirname, "public");
-
+  const distPath = path.resolve(__dirname, "..", "dist");
+  console.log("Resolved distPath:", distPath);
+  console.log("Current __dirname:", __dirname);
   if (!fs.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`,
     );
   }
 
-  // 1. Отдача статики
   app.use(express.static(distPath));
 
-  // 2. Только если путь НЕ начинается с /api — отдаём index.html
   app.get("*", (req, res) => {
     if (req.path.startsWith("/api")) {
       return res.status(404).json({ message: "API route not found" });
     }
 
-    res.sendFile(path.resolve(distPath, "index.html"));
+    const indexPath = path.resolve(distPath, "index.html");
+    console.log("Serving index.html from:", indexPath);
+    if (!fs.existsSync(indexPath)) {
+      throw new Error(`index.html not found at: ${indexPath}`);
+    }
+    res.sendFile(indexPath);
   });
 }
