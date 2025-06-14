@@ -1,32 +1,26 @@
-# === Stage 1: Build app ===
-FROM node:18 AS builder
+# 1. Базовый образ с Node.js
+FROM node:18
 
+# 2. Рабочая директория внутри контейнера
 WORKDIR /app
 
-# Копируем package.json и package-lock.json
+# 3. Копируем package.json и package-lock.json
 COPY package*.json ./
 
-# Устанавливаем зависимости
+# 4. Устанавливаем зависимости
 RUN npm install
 
-# Копируем остальной проект
+# 5. Копируем остальные файлы проекта
 COPY . .
 
-# Билдим клиент и сервер
+# 6. Собираем проект
 RUN npm run build
 
-# === Stage 2: Production image ===
-FROM node:18 AS runner
+# 7. Указываем переменную окружения
+ENV NODE_ENV=production
 
-WORKDIR /app
+# 8. Открываем порт (если у тебя используется 5000)
+EXPOSE 5000
 
-# Копируем только то, что нужно
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/client/dist ./public
-
-# Устанавливаем только прод зависимости
-RUN npm install --omit=dev
-
-# Стартуем сервер
+# 9. Команда запуска
 CMD ["npm", "start"]
