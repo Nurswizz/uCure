@@ -1,21 +1,32 @@
-# Build React client
-FROM node:18 AS client-build
-WORKDIR /app/client
-COPY client/package*.json ./
-RUN npm install
-COPY client/ .
-RUN npm run build
+# === Stage 1: Build Frontend ===
+FROM node:20 AS client-builder
 
-# Build Express server
-FROM node:18 AS server-build
+WORKDIR /app
+
+COPY client ./client
+COPY package.json package-lock.json ./
+
+# Устанавливаем зависимости только для клиента
+RUN cd client && npm install && npm run build
+
+# === Stage 2: Build Backend + Copy Frontend Build ===
+FROM node:20 AS server
+
+WORKDIR /app
+
+COPY server ./server
+COPY package.json package-lock.json ./
+
+# Устанавливаем только production-зависимости
+RUN npm install --only=production
+
+# Копируем билд фронтенда внутрь сервера (если он его раздаёт)
+COPY --from=client-builder /app/client/dist ./server/public
+
+# Указываем рабочую директорию как server
 WORKDIR /app/server
-COPY server/package*.json ./
-RUN npm install
-COPY server/ .
 
-# Copy React build to server public directory
-COPY --from=client-build /app/client/build ./public
+# Открываем порт
+EXPOSE 3000
 
-# Expose and run server
-EXPOSE 5000
-CMD ["npm", "start"]
+CMD ["node", "index.js"]
