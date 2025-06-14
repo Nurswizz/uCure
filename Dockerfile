@@ -1,32 +1,33 @@
-# === Stage 1: Build Frontend ===
-FROM node:20 AS client-builder
+# === Stage 1: Build client ===
+FROM node:18 AS builder
 
 WORKDIR /app
 
-COPY client ./client
-COPY package.json package-lock.json ./
+# Копируем весь проект
+COPY . .
 
-# Устанавливаем зависимости только для клиента
-RUN cd client && npm install && npm run build
+# Устанавливаем зависимости из корневого package.json
+RUN npm install
 
-# === Stage 2: Build Backend + Copy Frontend Build ===
-FROM node:20 AS server
+# Собираем клиент — в client/dist
+RUN npm run build
+
+# === Stage 2: Production server ===
+FROM node:18
 
 WORKDIR /app
 
-COPY server ./server
-COPY package.json package-lock.json ./
+# Копируем всё, кроме node_modules и dist (оптимизация)
+COPY --chown=node:node . .
 
-# Устанавливаем только production-зависимости
-RUN npm install --only=production
+# Устанавливаем только необходимые зависимости
+RUN npm install --omit=dev
 
-# Копируем билд фронтенда внутрь сервера (если он его раздаёт)
-COPY --from=client-builder /app/client/dist ./server/public
+# Копируем собранный фронтенд в public/ (или куда указывает сервер)
+COPY --from=builder /app/client/dist ./server/public
 
-# Указываем рабочую директорию как server
+# Переходим в директорию сервера
 WORKDIR /app/server
 
-# Открываем порт
-EXPOSE 3000
-
-CMD ["node", "index.js"]
+# Запуск сервера
+CMD ["npm", "start"]
