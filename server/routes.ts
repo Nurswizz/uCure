@@ -6,6 +6,7 @@ import { analyzeSymptoms, transcribeAudio } from "./services/openai";
 import { insertSymptomSubmissionSchema, insertSymptomAnalysisSchema } from "@shared/schema";
 import multer from "multer";
 import { z } from "zod";
+import { register, login } from "./services/auth";
 
 
 // Configure multer for file uploads
@@ -256,6 +257,30 @@ export async function registerRoutes(app: Express): Promise<void> {
         console.error('Get session history error:', error);
         res.status(500).json({ message: 'An unknown error occurred' });
       }
+    }
+  });
+
+  // Authentication routes
+
+  app.post("/api/auth/register", async (req, res) => {
+    const { username, password } = req.body;
+    const result = await register(username, password);
+    console.log(result);
+    if (result.success) {
+      res.status(201).json({ user: result.user, message: "User registered successfully", success: true});
+    } else {
+      
+      res.status(400).json({ message: result.message, success: false });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    const { username, password } = req.body;
+    const result = await login(username, password);
+    if (result.success) {
+      res.json({ user: result.user, token: result.token, message: "User signed in successfully", success: true });
+    } else {
+      res.status(401).json({ message: result.message, success: false });
     }
   });
 
