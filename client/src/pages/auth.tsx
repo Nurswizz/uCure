@@ -2,11 +2,14 @@ import useAuth from '../hooks/use-auth';
 import { useState } from 'react';
 
 export default function AuthPage() {
-
     const { isAuthenticated, user, login, logout } = useAuth();
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({ username: '', password: '' });
-
+    if (isAuthenticated) {
+        // redirect to profile
+        window.location.href = '/profile';
+        
+    }
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -22,6 +25,7 @@ export default function AuthPage() {
                 body: JSON.stringify(formData),
             });
             const data = await result.json();
+
             if (data.success) {
                 login(data.user, data.token);
             } else {
@@ -35,8 +39,10 @@ export default function AuthPage() {
                 body: JSON.stringify(formData),
             });
             const data = await result.json();
+
             if (data.success) {
                 login(data.user, data.token);
+                window.location.href = "/profile";
             } else {
                 alert(data.message);
             }

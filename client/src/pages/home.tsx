@@ -17,18 +17,29 @@ import {
   UserCheck,
   Ban,
   Bot,
-  Check
+  Check,
+  User2Icon
 } from "lucide-react";
 import UploadModal from "@/components/upload-modal";
+import useAuth from "@/hooks/use-auth"
 
 export default function Home() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadType, setUploadType] = useState<'photo' | 'voice' | 'text'>('photo');
+  const auth = useAuth();
 
   const handleUploadClick = (type: 'photo' | 'voice' | 'text') => {
     setUploadType(type);
     setIsUploadModalOpen(true);
   };
+
+  const handleRedirect = () => {
+    if (auth.isAuthenticated) {
+      window.location.href = "/profile";
+    } else {
+      window.location.href = "/auth";
+    }
+  }
 
   return (
     <div className="min-h-screen bg-surface">
@@ -44,8 +55,8 @@ export default function Home() {
               <p className="text-sm text-gray-500">Know what your body tells</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="text-gray-500">
-            <Globe className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="text-gray-500" onClick={handleRedirect}>
+            <User2Icon className="h-5 w-5" />
           </Button>
         </div>
       </header>

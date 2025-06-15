@@ -12,7 +12,7 @@ export async function register(username: string, password: string) {
     }
     const user = await storage.createUser({ username, password });
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-    return { user, token, message: "User created successfully" };
+    return { user, token, message: "User created successfully", success: true };
 }
 
 // Login using username
@@ -22,5 +22,5 @@ export async function login(username: string, password: string) {
         return { success: false, message: 'Invalid credentials' };
     }
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-    return { user, token, message: "User signed in successfully" };
+    return { user, token, message: "User signed in successfully", success: true };
 }
