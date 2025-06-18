@@ -13,6 +13,8 @@ Storage: временное хранение в памяти
 
 Деплой:  Railway using Docker
 
+Vibecoded by Replit, debugged by me
+
 ## Структура проекта
 ```
 /client
